@@ -3,6 +3,7 @@ package br.com.ronna.vigia.controller;
 import br.com.ronna.vigia.dtos.TurmasDto;
 import br.com.ronna.vigia.enums.TurmaStatus;
 import br.com.ronna.vigia.services.TurmasServices;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,13 +43,13 @@ public class TurmasController {
 
 
     @PostMapping
-    public ResponseEntity<Object> criar(@RequestBody TurmasDto turmasDto) {
+    public ResponseEntity<Object> criar(@Valid @RequestBody TurmasDto turmasDto) {
         var turmaCriada = turmasServices.salvar(turmasDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(turmaCriada.get());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TurmasDto> atualizar(@PathVariable UUID id, @RequestBody TurmasDto turmasDto) {
+    public ResponseEntity<TurmasDto> atualizar(@PathVariable UUID id, @Valid @RequestBody TurmasDto turmasDto) {
         System.out.println("ID recebido para atualização: " + id);
         System.out.println("Dados recebidos para atualização: " + turmasDto);
         turmasServices.atualizar(id, turmasDto);

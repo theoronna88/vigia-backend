@@ -2,6 +2,7 @@ package br.com.ronna.vigia.controller;
 
 import br.com.ronna.vigia.model.CursoValor;
 import br.com.ronna.vigia.services.CursoValorServices;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +20,7 @@ public class CursoValorController {
     }
 
     @PostMapping("{cursoId}/valor")
-    public ResponseEntity<Object> atribuirValorAoCurso(@PathVariable UUID cursoId, @RequestBody CursoValor cursoValor) {
+    public ResponseEntity<Object> atribuirValorAoCurso(@PathVariable UUID cursoId, @Valid @RequestBody CursoValor cursoValor) {
         cursoValorService.atribuirValorAoCurso(cursoValor);
         return ResponseEntity.ok().build();
     }

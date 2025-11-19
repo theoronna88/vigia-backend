@@ -2,6 +2,7 @@ package br.com.ronna.vigia.controller;
 
 import br.com.ronna.vigia.dtos.CursosDto;
 import br.com.ronna.vigia.services.Impl.CursosServicesImpl;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +44,7 @@ public class CursosController {
     }
 
     @PostMapping
-    public ResponseEntity<CursosDto> criar(@RequestBody CursosDto cursosDto) {
+    public ResponseEntity<CursosDto> criar(@Valid @RequestBody CursosDto cursosDto) {
         try {
             CursosDto cursoSalvo = cursosServices.salvar(cursosDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(cursoSalvo);
@@ -53,7 +54,7 @@ public class CursosController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CursosDto> atualizar(@PathVariable UUID id, @RequestBody CursosDto cursosDto) {
+    public ResponseEntity<CursosDto> atualizar(@PathVariable UUID id, @Valid @RequestBody CursosDto cursosDto) {
         return cursosServices.atualizar(id, cursosDto)
                 .map(curso -> ResponseEntity.ok(curso))
                 .orElse(ResponseEntity.notFound().build());
