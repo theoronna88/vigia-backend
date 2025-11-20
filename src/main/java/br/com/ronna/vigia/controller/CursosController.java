@@ -1,7 +1,7 @@
 package br.com.ronna.vigia.controller;
 
 import br.com.ronna.vigia.dtos.CursosDto;
-import br.com.ronna.vigia.services.Impl.CursosServicesImpl;
+import br.com.ronna.vigia.services.CursosServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +15,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "*")
 public class CursosController {
 
-    // TODO: refatorar as exceptions para uma classe global de tratamento de erros
+    private final CursosServices cursosServices;
 
-    private CursosServicesImpl cursosServices;
-
-    public CursosController(CursosServicesImpl cursosServices) {
+    public CursosController(CursosServices cursosServices) {
         this.cursosServices = cursosServices;
     }
 
