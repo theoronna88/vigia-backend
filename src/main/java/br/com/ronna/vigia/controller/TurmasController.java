@@ -42,16 +42,14 @@ public class TurmasController {
 
 
     @PostMapping
-    public ResponseEntity<Object> criar(@RequestBody TurmasDto turmasDto) {
-        var turmaCriada = turmasServices.salvar(turmasDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(turmaCriada.get());
+    public ResponseEntity<TurmasDto> criar(@RequestBody TurmasDto turmasDto) {
+        return turmasServices.salvar(turmasDto)
+                .map(turma -> ResponseEntity.status(HttpStatus.CREATED).body(turma))
+                .orElse(ResponseEntity.badRequest().build());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<TurmasDto> atualizar(@PathVariable UUID id, @RequestBody TurmasDto turmasDto) {
-        System.out.println("ID recebido para atualização: " + id);
-        System.out.println("Dados recebidos para atualização: " + turmasDto);
-        turmasServices.atualizar(id, turmasDto);
         return turmasServices.atualizar(id, turmasDto)
                 .map(turma -> ResponseEntity.ok(turma))
                 .orElse(ResponseEntity.notFound().build());

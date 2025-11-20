@@ -1,5 +1,6 @@
 package br.com.ronna.vigia.services.Impl;
 
+import br.com.ronna.vigia.dtos.AlunoResponseDto;
 import br.com.ronna.vigia.dtos.AlunosDto;
 import br.com.ronna.vigia.dtos.SearchDto;
 import br.com.ronna.vigia.exceptions.NotFoundException;
@@ -14,6 +15,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class AlunoServicesImpl implements AlunoServices {
@@ -110,6 +112,86 @@ public class AlunoServicesImpl implements AlunoServices {
                 searchDto.getOptin(),
                 searchDto.getDataNascimento()
         );
+    }
+
+    @Override
+    public List<AlunoResponseDto> findAllActiveDto() {
+        return findAllActive().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AlunoResponseDto> findAllDto() {
+        return findAll().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AlunoResponseDto> searchByFilterDto(SearchDto searchDto) {
+        return searchByFilter(searchDto).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public AlunoResponseDto findByIdDto(UUID id) {
+        return findById(id)
+                .map(this::convertToDto)
+                .orElseThrow(() -> new NotFoundException("Erro: Aluno não encontrado"));
+    }
+
+    @Override
+    public AlunoResponseDto saveDto(AlunosDto alunoDto) {
+        return convertToDto(save(alunoDto));
+    }
+
+    @Override
+    public AlunoResponseDto updateDto(UUID id, AlunosDto alunosDto) {
+        return convertToDto(update(id, alunosDto));
+    }
+
+    @Override
+    public List<AlunoResponseDto> findAlunosLeadDto() {
+        List<Aluno> alunos = findAlunosLead();
+        if (alunos == null) {
+            return null;
+        }
+        return alunos.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    private AlunoResponseDto convertToDto(Aluno aluno) {
+        AlunoResponseDto dto = new AlunoResponseDto();
+        dto.setId(aluno.getId());
+        dto.setNome(aluno.getNome());
+        dto.setCpf(aluno.getCpf());
+        dto.setRg(aluno.getRg());
+        dto.setOrgaoEmissor(aluno.getOrgaoEmissor());
+        dto.setNacionalidade(aluno.getNacionalidade());
+        dto.setNaturalidade(aluno.getNaturalidade());
+        dto.setNomeMae(aluno.getNomeMae());
+        dto.setNomePai(aluno.getNomePai());
+        dto.setSexo(aluno.getSexo());
+        dto.setEstadoCivil(aluno.getEstadoCivil());
+        dto.setEscolaridade(aluno.getEscolaridade());
+        dto.setProfissao(aluno.getProfissao());
+        dto.setCep(aluno.getCep());
+        dto.setEndereco(aluno.getEndereco());
+        dto.setNumero(aluno.getNumero());
+        dto.setComplemento(aluno.getComplemento());
+        dto.setBairro(aluno.getBairro());
+        dto.setCidade(aluno.getCidade());
+        dto.setEstado(aluno.getEstado());
+        dto.setTelefone(aluno.getTelefone());
+        dto.setEmail(aluno.getEmail());
+        dto.setDataNascimento(aluno.getDataNascimento());
+        dto.setDataCriacao(aluno.getDataCriacao());
+        dto.setDataAtualizacao(aluno.getDataAtualizacao());
+        dto.setOptin(aluno.isOptin());
+        return dto;
     }
 
 

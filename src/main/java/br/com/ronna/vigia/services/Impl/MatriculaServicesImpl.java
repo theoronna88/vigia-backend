@@ -1,6 +1,7 @@
 package br.com.ronna.vigia.services.Impl;
 
 import br.com.ronna.vigia.dtos.MatriculaDto;
+import br.com.ronna.vigia.dtos.MatriculaResponseDto;
 import br.com.ronna.vigia.dtos.MatriculaStatusDto;
 import br.com.ronna.vigia.enums.MatriculaStatus;
 import br.com.ronna.vigia.enums.TurmaStatus;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class MatriculaServicesImpl implements MatriculaServices {
@@ -41,7 +43,6 @@ public class MatriculaServicesImpl implements MatriculaServices {
 
     @Override
     public Matricula adicionarAlunoATurma(MatriculaDto matriculaDto) {
-        System.out.println("Adicionando aluno à turma: " + matriculaDto);
         var matriculaModel = new Matricula();
         var aluno = alunoRepository.findById(matriculaDto.getAlunoId())
                 .orElseThrow(() -> new NotFoundException("Aluno não encontrado com o ID: " + matriculaDto.getAlunoId()));
@@ -116,5 +117,45 @@ public class MatriculaServicesImpl implements MatriculaServices {
         matricula.setStatus(matriculaStatusDto.getStatus());
         matricula.setDataAtualizacao(LocalDateTime.now());
         return repo.save(matricula);
+    }
+
+    @Override
+    public MatriculaResponseDto adicionarAlunoATurmaDto(MatriculaDto matriculaDto) {
+        return convertToDto(adicionarAlunoATurma(matriculaDto));
+    }
+
+    @Override
+    public List<MatriculaResponseDto> listarMatriculasPorAlunoDto(UUID alunoId) {
+        Aluno aluno = alunoRepository.findById(alunoId)
+                .orElseThrow(() -> new NotFoundException("Aluno não encontrado com o ID: " + alunoId));
+        return listarMatriculasPorAluno(aluno).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MatriculaResponseDto> listarMatriculasPorTurmaDto(UUID turmaId) {
+        Turma turma = turmaRepository.findById(turmaId)
+                .orElseThrow(() -> new NotFoundException("Turma não encontrada com o ID: " + turmaId));
+        return listarMatriculasPorTurma(turma).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public MatriculaResponseDto alterarStatusMatriculaDto(MatriculaStatusDto matriculaStatusDto) {
+        return convertToDto(alterarStatusMatricula(matriculaStatusDto));
+    }
+
+    private MatriculaResponseDto convertToDto(Matricula matricula) {
+        MatriculaResponseDto dto = new MatriculaResponseDto();
+        dto.setAlunoId(matricula.getId().getAluno().getId());
+        dto.setTurmaId(matricula.getId().getTurma().getId());
+        dto.setMatriculaUnica(matricula.getMatriculaUnica());
+        dto.setDataMatricula(matricula.getDataMatricula());
+        dto.setStatus(matricula.getStatus());
+        dto.setDataCriacao(matricula.getDataCriacao());
+        dto.setDataAtualizacao(matricula.getDataAtualizacao());
+        return dto;
     }
 }
