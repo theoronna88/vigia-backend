@@ -2,10 +2,12 @@ package br.com.ronna.vigia.services.Impl;
 
 import br.com.ronna.vigia.dtos.TurmasDto;
 import br.com.ronna.vigia.enums.TurmaStatus;
+import br.com.ronna.vigia.exceptions.ConflictException;
 import br.com.ronna.vigia.exceptions.NotFoundException;
 import br.com.ronna.vigia.model.Turma;
 import br.com.ronna.vigia.repository.AlunosRepository;
 import br.com.ronna.vigia.repository.CursosRepository;
+import br.com.ronna.vigia.repository.MatriculaRepository;
 import br.com.ronna.vigia.repository.TurmasRepository;
 import br.com.ronna.vigia.services.TurmasServices;
 import org.springframework.stereotype.Service;
@@ -22,10 +24,12 @@ public class TurmasServicesImpl implements TurmasServices {
 
     private final TurmasRepository turmasRepository;
     private final CursosRepository cursosRepository;
+    private final MatriculaRepository matriculaRepository;
 
-    public TurmasServicesImpl(TurmasRepository turmasRepository, CursosRepository cursosRepository) {
+    public TurmasServicesImpl(TurmasRepository turmasRepository, CursosRepository cursosRepository, MatriculaRepository matriculaRepository) {
         this.turmasRepository = turmasRepository;
         this.cursosRepository = cursosRepository;
+        this.matriculaRepository = matriculaRepository;
     }
 
 
@@ -107,6 +111,13 @@ public class TurmasServicesImpl implements TurmasServices {
                 .orElseThrow(() -> new NotFoundException("Erro: Turma não encontrada para o ID especificado."));
 
         if (t != null) {
+            // Validar se existem matrículas ativas nesta turma
+            var matriculasAtivas = matriculaRepository.findByIdTurma(t);
+            if (!matriculasAtivas.isEmpty()) {
+                throw new ConflictException("Não é possível deletar a turma pois existem " +
+                    matriculasAtivas.size() + " matrícula(s) ativa(s) vinculada(s) a ela.");
+            }
+
             t.setDeleted(true);
             t.setStatus(TurmaStatus.CANCELADA);
             turmasRepository.save(t);

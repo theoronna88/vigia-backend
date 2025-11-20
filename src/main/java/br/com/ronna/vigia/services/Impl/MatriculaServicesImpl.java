@@ -1,18 +1,16 @@
 package br.com.ronna.vigia.services.Impl;
 
-import br.com.ronna.vigia.dtos.MatriculaDto;
-import br.com.ronna.vigia.dtos.MatriculaResponseDto;
-import br.com.ronna.vigia.dtos.MatriculaStatusDto;
+import br.com.ronna.vigia.dtos.*;
 import br.com.ronna.vigia.enums.MatriculaStatus;
+import br.com.ronna.vigia.enums.StatusDocumento;
 import br.com.ronna.vigia.enums.TurmaStatus;
 import br.com.ronna.vigia.exceptions.AlreadyExistsException;
 import br.com.ronna.vigia.exceptions.MaxStudentsException;
 import br.com.ronna.vigia.exceptions.NotFoundException;
-import br.com.ronna.vigia.model.Aluno;
-import br.com.ronna.vigia.model.Matricula;
-import br.com.ronna.vigia.model.MatriculaID;
-import br.com.ronna.vigia.model.Turma;
+import br.com.ronna.vigia.model.*;
 import br.com.ronna.vigia.repository.AlunosRepository;
+import br.com.ronna.vigia.repository.MatriculaDocumentoRepository;
+import br.com.ronna.vigia.repository.MatriculaFrequenciaRepository;
 import br.com.ronna.vigia.repository.MatriculaRepository;
 import br.com.ronna.vigia.repository.TurmasRepository;
 import br.com.ronna.vigia.services.MatriculaServices;
@@ -34,11 +32,19 @@ public class MatriculaServicesImpl implements MatriculaServices {
     private final MatriculaRepository repo;
     private final AlunosRepository alunoRepository;
     private final TurmasRepository turmaRepository;
+    private final MatriculaDocumentoRepository documentoRepository;
+    private final MatriculaFrequenciaRepository frequenciaRepository;
 
-    public MatriculaServicesImpl(MatriculaRepository repo, AlunosRepository alunoRepository, TurmasRepository turmaRepository) {
+    public MatriculaServicesImpl(MatriculaRepository repo,
+                                 AlunosRepository alunoRepository,
+                                 TurmasRepository turmaRepository,
+                                 MatriculaDocumentoRepository documentoRepository,
+                                 MatriculaFrequenciaRepository frequenciaRepository) {
         this.alunoRepository = alunoRepository;
         this.turmaRepository = turmaRepository;
         this.repo = repo;
+        this.documentoRepository = documentoRepository;
+        this.frequenciaRepository = frequenciaRepository;
     }
 
     @Override
@@ -156,6 +162,187 @@ public class MatriculaServicesImpl implements MatriculaServices {
         dto.setStatus(matricula.getStatus());
         dto.setDataCriacao(matricula.getDataCriacao());
         dto.setDataAtualizacao(matricula.getDataAtualizacao());
+        return dto;
+    }
+
+    @Override
+    public MatriculaResponseDto cancelarMatricula(CancelarMatriculaDto cancelarMatriculaDto) {
+        Matricula matricula = repo.findByMatriculaUnica(cancelarMatriculaDto.getMatriculaUnica());
+
+        if (matricula == null) {
+            throw new NotFoundException("Matrícula não encontrada com o ID: " + cancelarMatriculaDto.getMatriculaUnica());
+        }
+
+        if (matricula.getStatus() == MatriculaStatus.CANCELADA) {
+            throw new AlreadyExistsException("A matrícula já está cancelada.");
+        }
+
+        if (matricula.getStatus() == MatriculaStatus.CONCLUIDA) {
+            throw new IllegalStateException("Não é possível cancelar uma matrícula já concluída.");
+        }
+
+        matricula.setStatus(MatriculaStatus.CANCELADA);
+        matricula.setMotivoCancelamento(cancelarMatriculaDto.getMotivoCancelamento());
+        matricula.setDataCancelamento(LocalDateTime.now());
+        matricula.setDataAtualizacao(LocalDateTime.now());
+
+        return convertToDto(repo.save(matricula));
+    }
+
+    @Override
+    public MatriculaDocumentoResponseDto registrarDocumento(MatriculaDocumentoDto documentoDto) {
+        Matricula matricula = repo.findByMatriculaUnica(documentoDto.getMatriculaUnica());
+
+        if (matricula == null) {
+            throw new NotFoundException("Matrícula não encontrada com o ID: " + documentoDto.getMatriculaUnica());
+        }
+
+        MatriculaDocumento documento = new MatriculaDocumento();
+        documento.setMatricula(matricula);
+        documento.setTipoDocumento(documentoDto.getTipoDocumento());
+        documento.setStatusDocumento(documentoDto.getStatusDocumento() != null ?
+                documentoDto.getStatusDocumento() : StatusDocumento.PENDENTE);
+        documento.setDataEntrega(documentoDto.getDataEntrega());
+        documento.setDataVencimento(documentoDto.getDataVencimento());
+        documento.setObservacoes(documentoDto.getObservacoes());
+        documento.setDataCriacao(LocalDateTime.now());
+
+        MatriculaDocumento saved = documentoRepository.save(documento);
+        return convertDocumentoToDto(saved);
+    }
+
+    @Override
+    public MatriculaDocumentoResponseDto atualizarDocumento(UUID documentoId, MatriculaDocumentoDto documentoDto) {
+        MatriculaDocumento documento = documentoRepository.findById(documentoId)
+                .orElseThrow(() -> new NotFoundException("Documento não encontrado com o ID: " + documentoId));
+
+        if (documentoDto.getStatusDocumento() != null) {
+            documento.setStatusDocumento(documentoDto.getStatusDocumento());
+        }
+        if (documentoDto.getDataEntrega() != null) {
+            documento.setDataEntrega(documentoDto.getDataEntrega());
+        }
+        if (documentoDto.getDataVencimento() != null) {
+            documento.setDataVencimento(documentoDto.getDataVencimento());
+        }
+        if (documentoDto.getObservacoes() != null) {
+            documento.setObservacoes(documentoDto.getObservacoes());
+        }
+        documento.setDataAtualizacao(LocalDateTime.now());
+
+        MatriculaDocumento updated = documentoRepository.save(documento);
+        return convertDocumentoToDto(updated);
+    }
+
+    @Override
+    public List<MatriculaDocumentoResponseDto> listarDocumentosPorMatricula(UUID matriculaUnica) {
+        Matricula matricula = repo.findByMatriculaUnica(matriculaUnica);
+
+        if (matricula == null) {
+            throw new NotFoundException("Matrícula não encontrada com o ID: " + matriculaUnica);
+        }
+
+        List<MatriculaDocumento> documentos = documentoRepository.findByMatricula(matricula);
+        return documentos.stream()
+                .map(this::convertDocumentoToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void removerDocumento(UUID documentoId) {
+        MatriculaDocumento documento = documentoRepository.findById(documentoId)
+                .orElseThrow(() -> new NotFoundException("Documento não encontrado com o ID: " + documentoId));
+        documentoRepository.delete(documento);
+    }
+
+    @Override
+    public MatriculaFrequenciaResponseDto registrarFrequencia(MatriculaFrequenciaDto frequenciaDto) {
+        Matricula matricula = repo.findByMatriculaUnica(frequenciaDto.getMatriculaUnica());
+
+        if (matricula == null) {
+            throw new NotFoundException("Matrícula não encontrada com o ID: " + frequenciaDto.getMatriculaUnica());
+        }
+
+        // Verifica se já existe uma frequência para esta data
+        var frequenciaExistente = frequenciaRepository.findByMatriculaAndDataAula(
+                matricula, frequenciaDto.getDataAula());
+
+        if (frequenciaExistente.isPresent()) {
+            throw new AlreadyExistsException("Já existe um registro de frequência para esta data.");
+        }
+
+        MatriculaFrequencia frequencia = new MatriculaFrequencia();
+        frequencia.setMatricula(matricula);
+        frequencia.setDataAula(frequenciaDto.getDataAula());
+        frequencia.setPresenca(frequenciaDto.getPresenca());
+        frequencia.setObservacoes(frequenciaDto.getObservacoes());
+        frequencia.setDataCriacao(LocalDateTime.now());
+
+        MatriculaFrequencia saved = frequenciaRepository.save(frequencia);
+        return convertFrequenciaToDto(saved);
+    }
+
+    @Override
+    public MatriculaFrequenciaResponseDto atualizarFrequencia(UUID frequenciaId, MatriculaFrequenciaDto frequenciaDto) {
+        MatriculaFrequencia frequencia = frequenciaRepository.findById(frequenciaId)
+                .orElseThrow(() -> new NotFoundException("Registro de frequência não encontrado com o ID: " + frequenciaId));
+
+        if (frequenciaDto.getPresenca() != null) {
+            frequencia.setPresenca(frequenciaDto.getPresenca());
+        }
+        if (frequenciaDto.getObservacoes() != null) {
+            frequencia.setObservacoes(frequenciaDto.getObservacoes());
+        }
+        frequencia.setDataAtualizacao(LocalDateTime.now());
+
+        MatriculaFrequencia updated = frequenciaRepository.save(frequencia);
+        return convertFrequenciaToDto(updated);
+    }
+
+    @Override
+    public List<MatriculaFrequenciaResponseDto> listarFrequenciasPorMatricula(UUID matriculaUnica) {
+        Matricula matricula = repo.findByMatriculaUnica(matriculaUnica);
+
+        if (matricula == null) {
+            throw new NotFoundException("Matrícula não encontrada com o ID: " + matriculaUnica);
+        }
+
+        List<MatriculaFrequencia> frequencias = frequenciaRepository.findByMatricula(matricula);
+        return frequencias.stream()
+                .map(this::convertFrequenciaToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void removerFrequencia(UUID frequenciaId) {
+        MatriculaFrequencia frequencia = frequenciaRepository.findById(frequenciaId)
+                .orElseThrow(() -> new NotFoundException("Registro de frequência não encontrado com o ID: " + frequenciaId));
+        frequenciaRepository.delete(frequencia);
+    }
+
+    private MatriculaDocumentoResponseDto convertDocumentoToDto(MatriculaDocumento documento) {
+        MatriculaDocumentoResponseDto dto = new MatriculaDocumentoResponseDto();
+        dto.setId(documento.getId());
+        dto.setMatriculaUnica(documento.getMatricula().getMatriculaUnica());
+        dto.setTipoDocumento(documento.getTipoDocumento());
+        dto.setStatusDocumento(documento.getStatusDocumento());
+        dto.setDataEntrega(documento.getDataEntrega());
+        dto.setDataVencimento(documento.getDataVencimento());
+        dto.setObservacoes(documento.getObservacoes());
+        dto.setDataCriacao(documento.getDataCriacao());
+        dto.setDataAtualizacao(documento.getDataAtualizacao());
+        return dto;
+    }
+
+    private MatriculaFrequenciaResponseDto convertFrequenciaToDto(MatriculaFrequencia frequencia) {
+        MatriculaFrequenciaResponseDto dto = new MatriculaFrequenciaResponseDto();
+        dto.setId(frequencia.getId());
+        dto.setMatriculaUnica(frequencia.getMatricula().getMatriculaUnica());
+        dto.setDataAula(frequencia.getDataAula());
+        dto.setPresenca(frequencia.getPresenca());
+        dto.setObservacoes(frequencia.getObservacoes());
+        dto.setDataCriacao(frequencia.getDataCriacao());
+        dto.setDataAtualizacao(frequencia.getDataAtualizacao());
         return dto;
     }
 }
