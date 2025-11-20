@@ -4,6 +4,7 @@ import br.com.ronna.vigia.dtos.AlunosDto;
 import br.com.ronna.vigia.dtos.SearchDto;
 import br.com.ronna.vigia.model.Aluno;
 import br.com.ronna.vigia.services.Impl.AlunoServicesImpl;
+import jakarta.validation.Valid;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +40,7 @@ public class AlunosController {
     }
 
     @PostMapping("/search")
-    public ResponseEntity<List<Aluno>> searchAlunosByFilter(@RequestBody SearchDto searchDto) {
+    public ResponseEntity<List<Aluno>> searchAlunosByFilter(@Valid @RequestBody SearchDto searchDto) {
         List<Aluno> alunos = alunosServices.searchByFilter(searchDto);
         return ResponseEntity.ok(alunos);
     }
@@ -56,13 +57,13 @@ public class AlunosController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> createAluno(@RequestBody AlunosDto alunoDto) {
+    public ResponseEntity<Object> createAluno(@Valid @RequestBody AlunosDto alunoDto) {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(alunosServices.save(alunoDto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Aluno> updateAluno(@PathVariable UUID id, @RequestBody AlunosDto alunoDto) {
+    public ResponseEntity<Aluno> updateAluno(@PathVariable UUID id, @Valid @RequestBody AlunosDto alunoDto) {
         return ResponseEntity.ok(alunosServices.update(id, alunoDto));
     }
 

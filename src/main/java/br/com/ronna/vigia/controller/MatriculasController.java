@@ -6,6 +6,7 @@ import br.com.ronna.vigia.model.Aluno;
 import br.com.ronna.vigia.model.Matricula;
 import br.com.ronna.vigia.model.Turma;
 import br.com.ronna.vigia.services.MatriculaServices;
+import jakarta.validation.Valid;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,13 +29,13 @@ public class MatriculasController {
     }
 
     @PostMapping()
-    public ResponseEntity<Matricula> adicionarAlunoATurma(@RequestBody MatriculaDto matriculaDto) {
+    public ResponseEntity<Matricula> adicionarAlunoATurma(@Valid @RequestBody MatriculaDto matriculaDto) {
         log.info("Recebendo requisição para adicionar aluno à turma: {}", matriculaDto);
         return ResponseEntity.status(201).body(service.adicionarAlunoATurma(matriculaDto));
     }
 
     @PatchMapping("/status")
-    public ResponseEntity<Matricula> alterarStatusMatricula(@RequestBody MatriculaStatusDto matriculaStatusDto) {
+    public ResponseEntity<Matricula> alterarStatusMatricula(@Valid @RequestBody MatriculaStatusDto matriculaStatusDto) {
         return ResponseEntity.ok(service.alterarStatusMatricula(matriculaStatusDto));
     }
 
