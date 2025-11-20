@@ -16,8 +16,6 @@ import java.util.UUID;
 @CrossOrigin(origins = "*")
 public class TurmasController {
 
-    //TODO: implementar tratamento de exceções globais
-
     private TurmasServices turmasServices;
 
     public TurmasController(TurmasServices turmasServices) {

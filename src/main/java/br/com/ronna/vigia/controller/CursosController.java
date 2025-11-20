@@ -42,12 +42,8 @@ public class CursosController {
 
     @PostMapping
     public ResponseEntity<CursosDto> criar(@RequestBody CursosDto cursosDto) {
-        try {
-            CursosDto cursoSalvo = cursosServices.salvar(cursosDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(cursoSalvo);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        CursosDto cursoSalvo = cursosServices.salvar(cursosDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(cursoSalvo);
     }
 
     @PutMapping("/{id}")
