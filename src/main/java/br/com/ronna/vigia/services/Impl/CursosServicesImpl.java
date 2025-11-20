@@ -42,9 +42,7 @@ public class CursosServicesImpl implements CursosServices {
     }
 
     public CursosDto salvar(CursosDto cursosDto) {
-        System.out.println("Salvando curso: " + cursosDto.toString());
         Curso curso = converterParaModel(cursosDto);
-        System.out.println("Curso convertido: " + curso.toString());
         curso.setCargaHoraria(cursosDto.getCargaHoraria());
         curso.setDataCriacao(LocalDateTime.now());
         curso.setDataAtualizacao(LocalDateTime.now());
