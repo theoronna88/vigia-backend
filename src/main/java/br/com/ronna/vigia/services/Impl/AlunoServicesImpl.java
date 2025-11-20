@@ -3,6 +3,7 @@ package br.com.ronna.vigia.services.Impl;
 import br.com.ronna.vigia.dtos.AlunoResponseDto;
 import br.com.ronna.vigia.dtos.AlunosDto;
 import br.com.ronna.vigia.dtos.SearchDto;
+import br.com.ronna.vigia.exceptions.AlreadyExistsException;
 import br.com.ronna.vigia.exceptions.NotFoundException;
 import br.com.ronna.vigia.model.Aluno;
 import br.com.ronna.vigia.repository.AlunosRepository;
@@ -11,7 +12,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,7 +42,7 @@ public class AlunoServicesImpl implements AlunoServices {
     public Optional<Aluno> findById(UUID id) {
         var aluno = alunosRepository.findById(id);
         if (!aluno.isPresent()) {
-            throw new RuntimeException("Erro: Aluno não encontrado");
+            throw new NotFoundException("Erro: Aluno não encontrado");
         }
         return aluno;
     }
@@ -50,10 +50,10 @@ public class AlunoServicesImpl implements AlunoServices {
     @Override
     public Aluno save(AlunosDto alunoDto) {
         if (alunosRepository.existsByCpf(alunoDto.getCpf())) {
-            throw new RuntimeException("CPF já cadastrado");
+            throw new AlreadyExistsException("CPF já cadastrado");
         }
         if (alunosRepository.existsByEmail(alunoDto.getEmail())) {
-            throw new RuntimeException("Email já cadastrado");
+            throw new AlreadyExistsException("Email já cadastrado");
         }
 
         var aluno = new Aluno();
