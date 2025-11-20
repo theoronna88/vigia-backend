@@ -30,6 +30,12 @@ public class Matricula {
 
     private LocalDateTime dataAtualizacao;
 
+    @Column(name = "motivo_cancelamento", length = 500)
+    private String motivoCancelamento;
+
+    @Column(name = "data_cancelamento")
+    private LocalDateTime dataCancelamento;
+
     public MatriculaID getId() {
         return id;
     }
@@ -78,6 +84,22 @@ public class Matricula {
     @Column(name = "matricula_unica", updatable = false, nullable = false, columnDefinition = "CHAR(36)")
     public void setMatriculaUnica(UUID matriculaUnica) {
         this.matriculaUnica = matriculaUnica;
+    }
+
+    public String getMotivoCancelamento() {
+        return motivoCancelamento;
+    }
+
+    public void setMotivoCancelamento(String motivoCancelamento) {
+        this.motivoCancelamento = motivoCancelamento;
+    }
+
+    public LocalDateTime getDataCancelamento() {
+        return dataCancelamento;
+    }
+
+    public void setDataCancelamento(LocalDateTime dataCancelamento) {
+        this.dataCancelamento = dataCancelamento;
     }
 
     @Override
