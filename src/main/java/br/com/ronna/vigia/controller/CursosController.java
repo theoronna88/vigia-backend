@@ -36,7 +36,7 @@ public class CursosController {
 
     @GetMapping("/lead")
     public ResponseEntity<Object> cursosLead() {
-        List<Object> listCursos = cursosServices.cursosLead();
+        var listCursos = cursosServices.cursosLead();
         return ResponseEntity.status(HttpStatus.OK).body(listCursos);
     }
 
