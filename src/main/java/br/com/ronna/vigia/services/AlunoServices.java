@@ -1,5 +1,6 @@
 package br.com.ronna.vigia.services;
 
+import br.com.ronna.vigia.dtos.AlunoResponseDto;
 import br.com.ronna.vigia.dtos.AlunosDto;
 import br.com.ronna.vigia.dtos.SearchDto;
 import br.com.ronna.vigia.model.Aluno;
@@ -25,4 +26,18 @@ public interface AlunoServices {
     List<Aluno> findAlunosLead();
 
     List<Aluno> searchByFilter(SearchDto searchDto);
+
+    List<AlunoResponseDto> findAllActiveDto();
+
+    List<AlunoResponseDto> findAllDto();
+
+    List<AlunoResponseDto> searchByFilterDto(SearchDto searchDto);
+
+    AlunoResponseDto findByIdDto(UUID id);
+
+    AlunoResponseDto saveDto(AlunosDto alunoDto);
+
+    AlunoResponseDto updateDto(UUID id, AlunosDto alunosDto);
+
+    List<AlunoResponseDto> findAlunosLeadDto();
 }
