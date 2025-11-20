@@ -22,8 +22,8 @@ public class MatriculaDocumento {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
-            @JoinColumn(name = "aluno_id", referencedColumnName = "aluno_id"),
-            @JoinColumn(name = "turma_id", referencedColumnName = "turma_id")
+            @JoinColumn(name = "aluno_id", referencedColumnName = "matricula_aluno_id"),
+            @JoinColumn(name = "turma_id", referencedColumnName = "matricula_turma_id")
     })
     private Matricula matricula;
 
